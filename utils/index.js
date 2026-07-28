@@ -18,3 +18,8 @@ export const getDb = async () => {
 export const saveDb = async (data) => {
   return await fs.writeJson('./db.json', data)
 }
+
+export const USER_FIELDS = ['username', 'age']
+export const pick = (obj, keys) => {
+  Object.fromEntries(Object.entries(obj).filter((key) => keys.includes(key)))
+}

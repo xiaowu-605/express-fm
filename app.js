@@ -1,5 +1,5 @@
 import express from 'express'
-import { getDb, saveDb } from './utils/index.js'
+import { getDb, saveDb, USER_FIELDS, pick } from './utils/index.js'
 
 const app = express()
 // 中间件，处理接收到的body
@@ -23,6 +23,8 @@ app.post('/', async (req, res) => {
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.fail('缺少用户信息')
   }
+  let missing = USER_FIELDS.filter((f) => req.body[f] === undefined)
+  if (missing.length) return res.fail(`缺少字段: ${missing.join(', ')}`)
   // 获取到文件内容，把新增的添加进去
   const userInfo = await getDb()
   // 更新users
@@ -35,23 +37,17 @@ app.post('/', async (req, res) => {
 
 // 修改信息
 app.put('/:id', async (req, res) => {
-  if (!req.params?.id) {
-    res.fail('缺少用户id')
-    return
-  }
+  if (!req.params?.id) return res.fail('缺少用户id')
+  if (!req.body || Object.keys(req.body).length == 0)
+    return res.fail('缺少要修改的信息')
   const dbjson = await getDb()
-  const users = dbjson.users
-  const index = users.findIndex((item) => item.id == req.params.id)
-  if (index != -1) {
-    users[index] = {
-      ...users[index],
-      ...req.body,
-    }
-    await saveDb(dbjson)
-    res.success('修改成功')
-  } else {
-    res.fail('修改失败，当前id不存在')
-  }
+  const target = dbjson.users?.find(
+    (item) => item.id == Number.parseInt(req.params.id),
+  )
+  if (!target) return res.fail('修改失败，当前id不存在')
+  Object.assign(target, pick(req.body, USER_FIELDS))
+  await saveDb(dbjson)
+  res.success('修改成功')
 })
 // 全局错误处理中间件, 不要每个路由都要try catch捕获错误
 app.use((err, req, res, next) => {
