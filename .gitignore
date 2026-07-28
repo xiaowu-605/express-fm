@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+vendor/
+package-lock.json
+docs
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and local secrets
+.env
+!.env.example
+!.env.template
+
+# Database
+*.db
+*.db-journal
+
+# Local editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+
+# Cache and temporary files
+.cache/
+.tmp/
+tmp/
+temp/
+*.tsbuildinfo
+
+# Package manager stores
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
