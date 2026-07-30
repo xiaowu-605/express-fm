@@ -12,7 +12,7 @@ export const registerValidator = [
     .bail()
     .custom(async (value) => {
       const exists = await User.findOne({ email: value })
-      if (exists) throw new Error('邮箱已存在')
+      if (exists) return Promise.reject('邮箱已被注册')
       return true
     }),
   body('password').notEmpty().withMessage('密码不能为空'),
@@ -25,7 +25,24 @@ export const registerValidator = [
     .bail()
     .custom(async (value) => {
       const exists = await User.findOne({ phone: value })
-      if (exists) throw new Error('手机号已被注册')
+      if (exists) return Promise.reject('手机号已被注册')
       return true
     }),
+]
+
+// 邮箱 密码登录
+export const loginValidator = [
+  body('email')
+    .notEmpty()
+    .withMessage('邮箱不能为空')
+    .bail() // bail验证通过才验证后面的
+    .isEmail()
+    .withMessage('邮箱格式不正确')
+    .bail()
+    .custom(async (value) => {
+      const exists = await User.findOne({ email: value })
+      if (!exists) return Promise.reject('邮箱不存在，请先注册')
+      return true
+    }),
+  body('password').notEmpty().withMessage('密码不能为空'), // 这里不判断是否正确，因为加密了
 ]

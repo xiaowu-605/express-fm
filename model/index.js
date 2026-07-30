@@ -12,4 +12,5 @@ main()
     console.log('mongodb连接失败:', err)
   })
 
+// Model — 操作集合
 export const User = mongoose.model('User', userSchema)
