@@ -1,5 +1,5 @@
 // 处理接口返回数据结构，数据
-export const handleRes = (req, res, next) => {
+export const responseHelper = (req, res, next) => {
   res.success = (data, msg) => res.json({ code: 0, data: data ?? null, msg })
 
   res.fail = (msg, status = 400) => res.status(status).json({ code: 1, msg })

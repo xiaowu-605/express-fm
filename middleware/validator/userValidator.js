@@ -15,7 +15,12 @@ export const registerValidator = [
       if (exists) return Promise.reject('邮箱已被注册')
       return true
     }),
-  body('password').notEmpty().withMessage('密码不能为空'),
+  body('password')
+    .notEmpty()
+    .withMessage('密码不能为空')
+    .bail()
+    .isLength({ min: 5 })
+    .withMessage('密码长度不能小于5位'),
   body('phone')
     .notEmpty()
     .withMessage('手机号不能为空')
