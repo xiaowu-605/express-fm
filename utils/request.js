@@ -1,9 +1,8 @@
 // 处理接口返回数据结构，数据
 export const handleRes = (req, res, next) => {
-  res.success = (data, message) =>
-    res.json({ code: 0, data: data ?? null, message })
-  res.fail = (message, status = 400) =>
-    res.status(status).json({ code: 1, message })
+  res.success = (data, msg) => res.json({ code: 0, data: data ?? null, msg })
+
+  res.fail = (msg, status = 400) => res.status(status).json({ code: 1, msg })
   next()
 }
 
@@ -16,3 +15,7 @@ export const handleAllError = (err, req, res, next) => {
 export const handleNotFound = (req, res, next) => {
   res.fail('404 Not Found', 404)
 }
+
+// 验证错误信息处理成字符串返回
+export const handleValidationErrorToStr = (error) =>
+  error?.map((err) => err.msg).join(',') || ''

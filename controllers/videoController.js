@@ -1,3 +1,3 @@
-export const list = () => (req, res) => {
+export const list = (req, res) => {
   res.success('成功')
 }
