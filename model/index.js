@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { userSchema } from './userModel.js'
 
 async function main() {
-  await mongoose.connect('mongodb://localhost:27017/express-video')
+  await mongoose.connect(process.env.DB_URL)
 }
 main()
   .then((res) => {

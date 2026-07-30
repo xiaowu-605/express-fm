@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import morgan from 'morgan' // 日志记录 中大型项目一般用更专业的日志库，比如 winston 或 pino

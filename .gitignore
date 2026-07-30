@@ -24,6 +24,7 @@ pnpm-debug.log*
 .env
 !.env.example
 !.env.template
+.env.production
 
 # Database
 *.db
