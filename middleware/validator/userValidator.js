@@ -51,3 +51,22 @@ export const loginValidator = [
     }),
   body('password').notEmpty().withMessage('密码不能为空'), // 这里不判断是否正确，因为加密了
 ]
+
+// 更新验证
+export const updateValidator = [
+  body('email').custom(async (value) => {
+    const exists = await User.findOne({ email: value })
+    if (exists) return Promise.reject('邮箱已被注册')
+    return true
+  }),
+  body('username').custom(async (value) => {
+    const exists = await User.findOne({ username: value })
+    if (exists) return Promise.reject('用户名已被注册')
+    return true
+  }),
+  body('phone').custom(async (value) => {
+    const exists = await User.findOne({ phone: value })
+    if (exists) return Promise.reject('手机号已被注册')
+    return true
+  }),
+]

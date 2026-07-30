@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 // 生成token
 export const getToken = (userInfo) => {
-  return jwt.sign(userInfo, process.env.JWT_SECRET, {
+  return jwt.sign({ userInfo }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   })
 }

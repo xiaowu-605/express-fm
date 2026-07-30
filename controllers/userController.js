@@ -29,3 +29,11 @@ export const login = async (req, res) => {
 export const list = async (req, res) => {
   res.success('list')
 }
+
+// 更新
+export const update = async (req, res) => {
+  const id = req.user?.userInfo?._id
+  if (!id) return res.fail('未获取到用户信息')
+  const dbBack = await User.findByIdAndUpdate(id, req.body, { new: true }) // new: true获取更新后的
+  res.success(dbBack, '更新成功')
+}
