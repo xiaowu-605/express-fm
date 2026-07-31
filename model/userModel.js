@@ -34,6 +34,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    isDeleted: {
+      // 软删除需要
+      type: Boolean,
+      default: false,
+    }, // 默认没被删
+    deletedAt: Date,
     // createAt: {
     //   type: Date,
     //   default: Date.now,
@@ -51,5 +57,9 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return
   this.password = await bcrypt.hash(this.password, 10)
+})
+// 以find开头的 findOne等 软删除，只是标记isDeleted为true，不是真的把数据库的删除
+userSchema.pre(/^find/, function () {
+  this.where({ isDeleted: { $ne: true } })
 })
 export { userSchema }
