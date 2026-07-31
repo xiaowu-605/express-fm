@@ -50,6 +50,8 @@ tmp/
 temp/
 *.tsbuildinfo
 
+uploads
+
 # Package manager stores
 .pnpm-store/
 .yarn/cache/

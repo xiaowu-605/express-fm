@@ -19,7 +19,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 // 中间件，处理接收到的body
-app.use(express.static(join(__dirname, 'public'))) // 托管静态文件 访问根路径会自动返回public下的index.html文件
+app.use(express.static(join(__dirname, 'public'))) // 前端页面 托管静态文件 访问根路径会自动返回public下的index.html文件
+app.use('/uploads', express.static(join(__dirname, 'uploads'))) // 用户上传的图片等
 app.use(morgan('dev')) // 开发模式 生产：app.use(morgan('combined', { stream: fs.createWriteStream('./access.log') }))
 app.use(cors()) // 处理跨域   上线后限制来源（生产用）：app.use(cors({ origin: 'https://myapp.com' }))
 app.use(express.urlencoded({ extended: true })) // 解析表单请求体
@@ -28,6 +29,11 @@ app.use(responseHelper) // 给返回结果res加success和fail
 
 // 路由
 app.use('/api/v1', router)
+
+// 通配符  http://localhost:3000/login等路径直接返回index.html
+app.get('/{*path}', (req, res) => {
+  res.sendFile(join(__dirname, 'public', 'index.html'))
+})
 
 // 404
 app.use(handleNotFound)
