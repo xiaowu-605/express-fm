@@ -13,6 +13,11 @@ const videoSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    commentCount: {
+      // 评论数量
+      type: Number,
+      default: 0,
+    },
     user: {
       type: mongoose.ObjectId,
       required: true,

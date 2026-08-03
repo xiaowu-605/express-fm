@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { userSchema } from './userModel.js'
 import { videoSchema } from './videoModel.js'
 import { subscribeSchema } from './subscribeModel.js'
+import { videoCommentSchema } from './videoCommentModel.js'
 
 async function main() {
   await mongoose.connect(process.env.DB_URL)
@@ -18,3 +19,4 @@ main()
 export const User = mongoose.model('User', userSchema)
 export const Video = mongoose.model('Video', videoSchema)
 export const Subscribe = mongoose.model('Subscribe', subscribeSchema)
+export const VideoComment = mongoose.model('VideoComment', videoCommentSchema)

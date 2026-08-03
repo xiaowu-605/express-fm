@@ -5,6 +5,7 @@ import {
   createVideo,
   videoList,
   videoDetail,
+  comment,
 } from '../controllers/videoController.js'
 import { getvod } from '../controllers/vodControll.js'
 import { requireAuth } from '../utils/jwt.js'
@@ -20,5 +21,6 @@ router
   .post('/createVideo', requireAuth(), validator(videoValidator), createVideo)
   .get('/videoList', requireAuth(false), videoList)
   .get('/videoDetail', requireAuth(false), videoDetail)
+  .post('/comment', requireAuth(), comment)
 
 export default router

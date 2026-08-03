@@ -1,7 +1,6 @@
 import fs from 'fs-extra'
 import { join } from 'path'
-import { User } from '../model/index.js'
-import { Video } from '../model/index.js'
+import { User, Video, VideoComment } from '../model/index.js'
 
 const __dirname = import.meta.dirname
 export const uploadVideo = async (req, res) => {
@@ -61,4 +60,21 @@ export const videoDetail = async (req, res) => {
     '_id username image cover channeldes', // 需要返回的数据
   )
   res.success(dbBack)
+}
+
+// 提交评论
+export const comment = async (req, res) => {
+  const id = req.user?.userInfo?._id
+  const { videoId, content } = req.body
+  if (!content) return res.fail('请传入评论内容', 422)
+  const videoInfo = await Video.findById(videoId)
+  if (!videoInfo) return res.fail('视频不存在', 404)
+  const dbBack = await new VideoComment({
+    content,
+    video: videoId,
+    user: id,
+  }).save()
+  videoInfo.commentCount++
+  await videoInfo.save()
+  res.success(dbBack, '评论成功')
 }
