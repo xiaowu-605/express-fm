@@ -39,3 +39,26 @@ export const createVideo = async (req, res) => {
     res.fail(e, 500)
   }
 }
+
+// 分页返回数据
+export const videoList = async (req, res) => {
+  const { pageNum = 1, pageSize = 10 } = req.body
+  const videolist = await Video.find()
+    .skip((pageNum - 1) * pageSize)
+    .limit(pageSize)
+    .sort({ creatAt: -1 })
+    .populate('user', '_id username image cover channeldes') // 把关联的用户信息也查询出来
+  const total = await Video.countDocuments() // 获取总条数
+  res.success({ videolist, total })
+}
+
+// 获取视频详情
+export const videoDetail = async (req, res) => {
+  let { videoId } = req.query
+  if (!videoId) res.fail('请传入视频id')
+  const dbBack = await Video.findById(videoId).populate(
+    'user',
+    '_id username image cover channeldes', // 需要返回的数据
+  )
+  res.success(dbBack)
+}
