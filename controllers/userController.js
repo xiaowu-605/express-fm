@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import { User } from '../model/index.js'
+import { Subscribe, User } from '../model/index.js'
 import bcrypt from 'bcryptjs'
 import { getToken } from '../utils/jwt.js'
 import { join } from 'path'
@@ -62,4 +62,41 @@ export const uploadAvatar = async (req, res) => {
   } catch (e) {
     res.fail('上传失败', 500)
   }
+}
+
+// 关注
+export const subscribe = async (req, res) => {
+  const channleId = req.query?.userId // 关注人的id
+  const id = req.user?.userInfo?._id
+  if (!channleId) return res.fail('请传入用户id')
+  if (channleId == id) return res.fail('不能关注自己', 422)
+  const userInfo = await User.findById(channleId)
+  if (!userInfo) return res.fail('该用户不存在')
+  const data = { user: id, channle: channleId }
+  const record = await Subscribe.findOne(data)
+  if (record) return res.fail('已关注该用户')
+  // 存入数据库
+  await new Subscribe(data).save()
+  // 关注人的粉丝加1
+  userInfo.subscribeCount++
+  const dbBack = await userInfo.save()
+  res.success(null, '关注成功')
+}
+
+// 取消关注
+export const unsubscribe = async (req, res) => {
+  const channleId = req.query?.userId // 关注人的id
+  const id = req.user?.userInfo?._id
+  if (!channleId) return res.fail('请传入用户id')
+  if (channleId == id) return res.fail('不能取消关注自己', 422)
+  const userInfo = await User.findById(channleId)
+  if (!userInfo) return res.fail('该用户不存在')
+  const data = { user: id, channle: channleId }
+  const record = await Subscribe.findOne(data)
+  if (!record) return res.fail('还没有关注该用户')
+  await record.deleteOne()
+  // 关注人的粉丝减1
+  userInfo.subscribeCount--
+  await userInfo.save()
+  res.success(null, '取消成功')
 }

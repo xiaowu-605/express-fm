@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    subscribeCount: {
+      // 粉丝数
+      type: Number,
+      default: 0,
+    },
     isDeleted: {
       // 软删除需要
       type: Boolean,

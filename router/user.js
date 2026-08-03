@@ -6,6 +6,8 @@ import {
   list,
   update,
   uploadAvatar,
+  subscribe,
+  unsubscribe,
 } from '../controllers/userController.js'
 import { validator } from '../middleware/validator/errorBack.js'
 import {
@@ -24,5 +26,7 @@ router
   .put('/update', requireAuth(), validator(updateValidator), update)
   .get('/list', requireAuth(), list)
   .post('/upload', requireAuth(), upload.single('avatar'), uploadAvatar) // avatar前端传的字段名
+  .get('/subscribe', requireAuth(), subscribe) // 订阅 关注
+  .get('/unsubscribe', requireAuth(), unsubscribe) // 取消订阅 关注
 
 export default router
