@@ -2,10 +2,9 @@ import fs from 'fs-extra'
 import { User } from '../model/index.js'
 import bcrypt from 'bcryptjs'
 import { getToken } from '../utils/jwt.js'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { join } from 'path'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __dirname = import.meta.dirname
 // 注册
 export const register = async (req, res) => {
   // await User.create(req.body) // 等于下面的两步

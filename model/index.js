@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import { userSchema } from './userModel.js'
+import { videoSchema } from './videoModel.js'
 
 async function main() {
   await mongoose.connect(process.env.DB_URL)
@@ -14,3 +15,4 @@ main()
 
 // Model — 操作集合
 export const User = mongoose.model('User', userSchema)
+export const Video = mongoose.model('Video', videoSchema)

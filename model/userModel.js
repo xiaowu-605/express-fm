@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true, // unique = 自动建唯一索引
+      // unique: true, // unique = 自动建唯一索引
     },
     password: {
       type: String,
