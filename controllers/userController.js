@@ -3,6 +3,17 @@ import { Subscribe, User } from '../model/index.js'
 import bcrypt from 'bcryptjs'
 import { getToken } from '../utils/jwt.js'
 import { join } from 'path'
+import { pick } from 'lodash-es'
+
+const PICK_FIELD = [
+  '_id',
+  'username',
+  'image',
+  'cover',
+  'channeldes',
+  'subscribeCount',
+  'isSubscribe',
+]
 
 const __dirname = import.meta.dirname
 // 注册
@@ -99,4 +110,51 @@ export const unsubscribe = async (req, res) => {
   userInfo.subscribeCount--
   await userInfo.save()
   res.success(null, '取消成功')
+}
+
+// 获取频道
+export const getUser = async (req, res) => {
+  let isSubscribe = false // 是否关注--通过是否已关注字段，来显示不同的状态
+  const channleId = req.query?.userId // 查看人的id
+  if (req.user) {
+    // 已登录
+    const id = req.user?.userInfo?._id
+    const data = { user: id, channle: channleId }
+    const record = await Subscribe.findOne(data)
+    if (record) {
+      // 关注了
+      isSubscribe = true
+    }
+    let user = await User.findById(channleId)
+    if (!user) return res.fail('该用户不存在')
+    let tempUser = pick(user, PICK_FIELD)
+    tempUser.isSubscribe = isSubscribe
+    res.success(tempUser)
+  }
+}
+
+// 某一个人的关注列表
+export const getSubscribe = async (req, res) => {
+  const { userId } = req.query // 查看人的id
+  const userInfo = await User.findById(userId)
+  if (!userInfo) return res.fail('该用户不存在')
+  let channleUsers = await Subscribe.find({ user: userId }).populate('channle')
+  if (channleUsers) {
+    channleUsers = channleUsers.map((item) => {
+      return pick(item.channle, PICK_FIELD)
+    })
+  }
+  res.success(channleUsers)
+}
+
+// 获取我的粉丝列表
+export const getChannel = async (req, res) => {
+  const id = req.user?.userInfo?._id
+  let channleUsers = await Subscribe.find({ channle: id }).populate('user')
+  if (channleUsers) {
+    channleUsers = channleUsers.map((item) => {
+      return pick(item.user, PICK_FIELD)
+    })
+  }
+  res.success(channleUsers)
 }

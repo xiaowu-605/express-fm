@@ -8,6 +8,9 @@ import {
   uploadAvatar,
   subscribe,
   unsubscribe,
+  getUser,
+  getSubscribe,
+  getChannel,
 } from '../controllers/userController.js'
 import { validator } from '../middleware/validator/errorBack.js'
 import {
@@ -28,5 +31,8 @@ router
   .post('/upload', requireAuth(), upload.single('avatar'), uploadAvatar) // avatar前端传的字段名
   .get('/subscribe', requireAuth(), subscribe) // 订阅 关注
   .get('/unsubscribe', requireAuth(), unsubscribe) // 取消订阅 关注
+  .get('/getUser', requireAuth(false), getUser) // 获取频道
+  .get('/getSubscribe', getSubscribe) // 获取关注列表，关注了哪些人,不登录也可以查看--某一个人的关注列表
+  .get('/getChannel', getChannel) // 获取粉丝
 
 export default router
