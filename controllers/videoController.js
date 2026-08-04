@@ -1,6 +1,12 @@
 import fs from 'fs-extra'
 import { join } from 'path'
-import { User, Video, VideoComment, VideoLike } from '../model/index.js'
+import {
+  User,
+  Video,
+  VideoComment,
+  VideoLike,
+  Subscribe,
+} from '../model/index.js'
 import { pick } from 'lodash-es'
 import { PICK_FIELD } from '../utils/index.js'
 
@@ -57,11 +63,43 @@ export const videoList = async (req, res) => {
 export const videoDetail = async (req, res) => {
   let { videoId } = req.query
   if (!videoId) res.fail('请传入视频id')
-  const dbBack = await Video.findById(videoId).populate(
+  let videoInfo = await Video.findById(videoId).populate(
     'user',
     '_id username image cover channeldes', // 需要返回的数据
   )
-  res.success(dbBack)
+  videoInfo = videoInfo.toObject()
+  videoInfo.isLike = false
+  videoInfo.isDisLike = false
+  videoInfo.isSubscribe = false
+  const { userInfo } = req.user
+  if (userInfo) {
+    // 已经登录
+    const userId = userInfo._id
+    const liked = await VideoLike.findOne({
+      user: userId,
+      video: videoId,
+      like: 1,
+    })
+    if (liked) {
+      videoInfo.isLike = true
+    }
+    const disLiked = await VideoLike.findOne({
+      user: userId,
+      video: videoId,
+      like: -1,
+    })
+    if (disLiked) {
+      videoInfo.isDisLike = true
+    }
+    const subscribe = await Subscribe.findOne({
+      user: userId,
+      channle: videoInfo.user._id,
+    })
+    if (subscribe) {
+      videoInfo.isSubscribe = true
+    }
+  }
+  res.success(videoInfo)
 }
 
 // 提交评论
