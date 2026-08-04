@@ -13,11 +13,6 @@ const videoSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    commentCount: {
-      // 评论数量
-      type: Number,
-      default: 0,
-    },
     user: {
       type: mongoose.ObjectId,
       required: true,
@@ -27,6 +22,21 @@ const videoSchema = new mongoose.Schema(
       // 封面
       type: String,
       required: false,
+    },
+    commentCount: {
+      // 评论数量
+      type: Number,
+      default: 0,
+    },
+    likeCount: {
+      // 喜欢数量
+      type: Number,
+      default: 0,
+    },
+    dislikeCount: {
+      // 不喜欢数量
+      type: Number,
+      default: 0,
     },
   },
   {

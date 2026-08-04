@@ -8,6 +8,8 @@ import {
   comment,
   commentList,
   delComment,
+  likeVideo,
+  likeVideoList,
 } from '../controllers/videoController.js'
 import { getvod } from '../controllers/vodControll.js'
 import { requireAuth } from '../utils/jwt.js'
@@ -26,5 +28,7 @@ router
   .post('/comment', requireAuth(), comment) // 提交评论
   .get('/commentList', requireAuth(), commentList) // 获取评论列表
   .delete('/delComment', requireAuth(), delComment) // 删除评论
+  .get('/like', requireAuth(), likeVideo) // 喜欢视频
+  .get('/likeVideoList', requireAuth(), likeVideoList) // 喜欢视频列表
 
 export default router

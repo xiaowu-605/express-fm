@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import { join } from 'path'
-import { User, Video, VideoComment } from '../model/index.js'
+import { User, Video, VideoComment, VideoLike } from '../model/index.js'
 import { pick } from 'lodash-es'
 import { PICK_FIELD } from '../utils/index.js'
 
@@ -111,4 +111,52 @@ export const delComment = async (req, res) => {
   videoInfo.commentCount--
   await videoInfo.save()
   res.success(dbBack, '删除成功')
+}
+
+// 喜欢视频
+export const likeVideo = async (req, res) => {
+  const userId = req.user?.userInfo?._id
+  let { videoId } = req.query
+  const videoInfo = await Video.findById(videoId)
+  if (!videoInfo) res.fail('视频不存在', 404)
+  const videolike = await VideoLike.findOne({
+    user: userId,
+    video: videoId,
+  })
+  let isLike = true
+  if (!videolike) {
+    await new VideoLike({
+      user: userId,
+      video: videoId,
+      like: 1,
+    }).save()
+  } else {
+    if (videolike.like === 1) {
+      // 之前是点赞状态
+      await videolike.deleteOne()
+      isLike = false
+    } else {
+      videolike.like = 1
+      await videolike.save()
+    }
+  }
+  videoInfo.likeCount = await VideoLike.countDocuments({
+    video: videoId,
+    like: 1,
+  })
+  videoInfo.dislikeCount = await VideoLike.countDocuments({
+    video: videoId,
+    like: -1,
+  })
+  await videoInfo.save()
+  res.success({ ...videoInfo.toObject(), isLike }, '操作成功')
+}
+
+// 喜欢视频列表
+export const likeVideoList = async (req, res) => {
+  const userId = req.user?.userInfo?._id
+  const likeVideo = await VideoLike.find({ user: userId, like: 1 }).populate(
+    'video',
+  )
+  res.success(likeVideo)
 }
