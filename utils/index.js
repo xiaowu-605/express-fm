@@ -1,5 +1,15 @@
 import fs from 'fs-extra'
 
+export const PICK_FIELD = [
+  '_id',
+  'username',
+  'image',
+  'cover',
+  'channeldes',
+  'subscribeCount',
+  'isSubscribe',
+]
+
 export const readFileOrDefault = async (filePath, defaultVal = '') => {
   try {
     return await fs.readFile(filePath, 'utf8')

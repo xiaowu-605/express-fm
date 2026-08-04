@@ -6,6 +6,7 @@ import {
   videoList,
   videoDetail,
   comment,
+  commentList,
 } from '../controllers/videoController.js'
 import { getvod } from '../controllers/vodControll.js'
 import { requireAuth } from '../utils/jwt.js'
@@ -21,6 +22,7 @@ router
   .post('/createVideo', requireAuth(), validator(videoValidator), createVideo)
   .get('/videoList', requireAuth(false), videoList)
   .get('/videoDetail', requireAuth(false), videoDetail)
-  .post('/comment', requireAuth(), comment)
+  .post('/comment', requireAuth(), comment) // 提交评论
+  .get('/commentList', requireAuth(), commentList) // 获取评论列表
 
 export default router

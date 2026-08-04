@@ -4,16 +4,7 @@ import bcrypt from 'bcryptjs'
 import { getToken } from '../utils/jwt.js'
 import { join } from 'path'
 import { pick } from 'lodash-es'
-
-const PICK_FIELD = [
-  '_id',
-  'username',
-  'image',
-  'cover',
-  'channeldes',
-  'subscribeCount',
-  'isSubscribe',
-]
+import { PICK_FIELD } from '../utils/index.js'
 
 const __dirname = import.meta.dirname
 // 注册

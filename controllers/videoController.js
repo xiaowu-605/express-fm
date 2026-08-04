@@ -1,6 +1,8 @@
 import fs from 'fs-extra'
 import { join } from 'path'
 import { User, Video, VideoComment } from '../model/index.js'
+import { pick } from 'lodash-es'
+import { PICK_FIELD } from '../utils/index.js'
 
 const __dirname = import.meta.dirname
 export const uploadVideo = async (req, res) => {
@@ -77,4 +79,21 @@ export const comment = async (req, res) => {
   videoInfo.commentCount++
   await videoInfo.save()
   res.success(dbBack, '评论成功')
+}
+
+// 获取评论列表
+export const commentList = async (req, res) => {
+  let { videoId, pageNum = 1, pageSize = 10 } = req.query
+  if (!videoId) res.fail('请传入视频id')
+  let list = await VideoComment.find({ video: videoId })
+    .skip((pageNum - 1) * pageSize)
+    .limit(pageSize)
+    .sort({ creatAt: -1 })
+    .populate('user')
+  list = list.map((item) => {
+    item.user = pick(item.user, PICK_FIELD)
+    return item
+  })
+  const total = await VideoComment.countDocuments({ video: videoId }) // 获取总条数
+  res.success({ commentList: list, total })
 }
