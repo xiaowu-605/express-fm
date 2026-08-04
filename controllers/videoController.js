@@ -97,3 +97,18 @@ export const commentList = async (req, res) => {
   const total = await VideoComment.countDocuments({ video: videoId }) // 获取总条数
   res.success({ commentList: list, total })
 }
+
+// 删除评论
+export const delComment = async (req, res) => {
+  let { videoId, commentId } = req.query
+  const videoInfo = await Video.findById(videoId)
+  if (!videoInfo) return res.fail('视频不存在', 404)
+  const commentInfo = await VideoComment.findById(commentId)
+  if (!commentInfo) return res.fail('评论不存在', 404)
+  if (!commentInfo.user.equals(req.user.userInfo._id))
+    return res.fail('评论不可删除', 403)
+  const dbBack = await commentInfo.deleteOne()
+  videoInfo.commentCount--
+  await videoInfo.save()
+  res.success(dbBack, '删除成功')
+}
