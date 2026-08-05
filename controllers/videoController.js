@@ -6,6 +6,7 @@ import {
   VideoComment,
   VideoLike,
   Subscribe,
+  Collect,
 } from '../model/index.js'
 import { pick } from 'lodash-es'
 import { PICK_FIELD } from '../utils/index.js'
@@ -54,7 +55,7 @@ export const videoList = async (req, res) => {
     .skip((pageNum - 1) * pageSize)
     .limit(pageSize)
     .sort({ creatAt: -1 })
-    .populate('user', '_id username image cover channeldes') // 把关联的用户信息也查询出来
+    .populate('user', PICK_FIELD.join(' ')) // 把关联的用户信息也查询出来
   const total = await Video.countDocuments() // 获取总条数
   res.success({ videolist, total })
 }
@@ -65,7 +66,7 @@ export const videoDetail = async (req, res) => {
   if (!videoId) res.fail('请传入视频id')
   let videoInfo = await Video.findById(videoId).populate(
     'user',
-    '_id username image cover channeldes', // 需要返回的数据
+    PICK_FIELD.join(' '), // 需要返回的数据
   )
   videoInfo = videoInfo.toObject()
   videoInfo.isLike = false
@@ -156,7 +157,7 @@ export const likeVideo = async (req, res) => {
   const userId = req.user?.userInfo?._id
   let { videoId } = req.query
   const videoInfo = await Video.findById(videoId)
-  if (!videoInfo) res.fail('视频不存在', 404)
+  if (!videoInfo) return res.fail('视频不存在', 404)
   const videolike = await VideoLike.findOne({
     user: userId,
     video: videoId,
@@ -197,4 +198,21 @@ export const likeVideoList = async (req, res) => {
     'video',
   )
   res.success(likeVideo)
+}
+
+// 收藏视频
+export const collect = async (req, res) => {
+  const userId = req.user?.userInfo?._id
+  let { videoId } = req.query
+  const videoInfo = await Video.findById(videoId)
+  if (!videoInfo) return res.fail('视频不存在', 404)
+  const data = {
+    user: userId,
+    video: videoId,
+  }
+  const dbFindBack = await Collect.findOne(data)
+  if (dbFindBack) return res.fail('已经收藏了该视频', 403)
+  let dbBack = await new Collect(data).save()
+  dbBack = await dbBack.populate('user', PICK_FIELD.join(' '))
+  res.success(dbBack, '操作成功')
 }
