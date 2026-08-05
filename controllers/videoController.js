@@ -8,8 +8,9 @@ import {
   Subscribe,
   Collect,
 } from '../model/index.js'
+import { hotInc, hotTop } from '../model/redis/redishotsnc.js'
 import { pick } from 'lodash-es'
-import { PICK_FIELD } from '../utils/index.js'
+import { PICK_FIELD, HOT_NUM } from '../utils/index.js'
 
 const __dirname = import.meta.dirname
 export const uploadVideo = async (req, res) => {
@@ -100,6 +101,7 @@ export const videoDetail = async (req, res) => {
       videoInfo.isSubscribe = true
     }
   }
+  await hotInc(videoId, HOT_NUM.watch)
   res.success(videoInfo)
 }
 
@@ -117,6 +119,7 @@ export const comment = async (req, res) => {
   }).save()
   videoInfo.commentCount++
   await videoInfo.save()
+  await hotInc(videoId, HOT_NUM.comment)
   res.success(dbBack, '评论成功')
 }
 
@@ -169,6 +172,7 @@ export const likeVideo = async (req, res) => {
       video: videoId,
       like: 1,
     }).save()
+    await hotInc(videoId, HOT_NUM.collect)
   } else {
     if (videolike.like === 1) {
       // 之前是点赞状态
@@ -177,6 +181,7 @@ export const likeVideo = async (req, res) => {
     } else {
       videolike.like = 1
       await videolike.save()
+      await hotInc(videoId, HOT_NUM.like)
     }
   }
   videoInfo.likeCount = await VideoLike.countDocuments({
@@ -214,5 +219,15 @@ export const collect = async (req, res) => {
   if (dbFindBack) return res.fail('已经收藏了该视频', 403)
   let dbBack = await new Collect(data).save()
   dbBack = await dbBack.populate('user', PICK_FIELD.join(' '))
+  if (dbBack) {
+    await hotInc(videoId, HOT_NUM.collect)
+  }
   res.success(dbBack, '操作成功')
+}
+
+// 获取热门视频
+export const getHots = async (req, res) => {
+  const { hotNum } = req.query
+  const tops = await hotTop(hotNum)
+  res.success(tops)
 }

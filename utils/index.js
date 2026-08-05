@@ -9,6 +9,13 @@ export const PICK_FIELD = [
   'subscribeCount',
   'isSubscribe',
 ]
+// 热度：观看+1----点赞+2----评论+2----收藏+3
+export const HOT_NUM = {
+  collect: 3,
+  watch: 1,
+  like: 2,
+  comment: 2,
+}
 
 export const readFileOrDefault = async (filePath, defaultVal = '') => {
   try {

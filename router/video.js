@@ -11,6 +11,7 @@ import {
   likeVideo,
   likeVideoList,
   collect,
+  getHots,
 } from '../controllers/videoController.js'
 import { getvod } from '../controllers/vodControll.js'
 import { requireAuth } from '../utils/jwt.js'
@@ -32,5 +33,6 @@ router
   .get('/like', requireAuth(), likeVideo) // 喜欢视频
   .get('/likeVideoList', requireAuth(), likeVideoList) // 喜欢视频列表
   .get('/collect', requireAuth(), collect) // 收藏视频
+  .get('/getHots', getHots) // 获取热门视频
 
 export default router
