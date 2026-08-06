@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import { getToken } from '../utils/jwt.js'
 import { join } from 'path'
 import { pick } from 'lodash-es'
-import { PICK_FIELD } from '../utils/index.js'
+import { PICK_FIELD, USER_UPDATE_FIELDS } from '../utils/index.js'
 
 const __dirname = import.meta.dirname
 // 注册
@@ -39,9 +39,22 @@ export const list = async (req, res) => {
 // 更新
 export const update = async (req, res) => {
   const id = req.user?.userInfo?._id
+  // update 中用白名单过滤，不允传 password
+  const allowed = pick(req.body, ...USER_UPDATE_FIELDS)
+
   if (!id) return res.fail('未获取到用户信息')
-  const dbBack = await User.findByIdAndUpdate(id, req.body, { new: true }) // new: true获取更新后的
+  const dbBack = await User.findByIdAndUpdate(id, allowed, { new: true }) // new: true获取更新后的
   res.success(dbBack, '更新成功')
+}
+
+// 密码修改单独接口
+export const changePassword = async (req, res) => {
+  const user = await User.findById(req.user.userInfo._id).select('+password')
+  const isMatch = await bcrypt.compare(req.body.oldPassword, user.password)
+  if (!isMatch) return res.fail('原密码不正确')
+  user.password = req.body.newPassword
+  await user.save() // trigger pre('save') hook
+  res.success(null, '密码修改成功')
 }
 
 // 上传头像
@@ -80,7 +93,7 @@ export const subscribe = async (req, res) => {
   // 存入数据库
   await new Subscribe(data).save()
   // 关注人的粉丝加1
-  userInfo.subscribeCount++
+  await User.findByIdAndUpdate(channleId, { $inc: { subscribeCount: 1 } })
   const dbBack = await userInfo.save()
   res.success(null, '关注成功')
 }
@@ -107,21 +120,20 @@ export const unsubscribe = async (req, res) => {
 export const getUser = async (req, res) => {
   let isSubscribe = false // 是否关注--通过是否已关注字段，来显示不同的状态
   const channleId = req.query?.userId // 查看人的id
-  if (req.user) {
-    // 已登录
-    const id = req.user?.userInfo?._id
+  const id = req.user?.userInfo?._id
+  if (id) {
     const data = { user: id, channle: channleId }
     const record = await Subscribe.findOne(data)
     if (record) {
       // 关注了
       isSubscribe = true
     }
-    let user = await User.findById(channleId)
-    if (!user) return res.fail('该用户不存在')
-    let tempUser = pick(user, PICK_FIELD)
-    tempUser.isSubscribe = isSubscribe
-    res.success(tempUser)
   }
+  let user = await User.findById(channleId)
+  if (!user) return res.fail('该用户不存在')
+  let tempUser = pick(user, PICK_FIELD)
+  tempUser.isSubscribe = isSubscribe
+  res.success(tempUser)
 }
 
 // 某一个人的关注列表

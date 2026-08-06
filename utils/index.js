@@ -17,6 +17,14 @@ export const HOT_NUM = {
   comment: 2,
 }
 
+export const USER_UPDATE_FIELDS = [
+  'username',
+  'email',
+  'phone',
+  'image',
+  'channeldes',
+]
+
 export const readFileOrDefault = async (filePath, defaultVal = '') => {
   try {
     return await fs.readFile(filePath, 'utf8')

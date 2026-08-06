@@ -4,6 +4,7 @@ import cors from 'cors'
 import morgan from 'morgan' // 日志记录 中大型项目一般用更专业的日志库，比如 winston 或 pino
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import mongoose from 'mongoose'
 import {
   responseHelper,
   handleAllError,
@@ -15,7 +16,7 @@ import router from './router/index.js'
 //import.meta.url                                   // "file:///C:/project/app.js"（URL 格式）
 //dirname(fileURLToPath(import.meta.url))            // "C:/project"（转回普通路径）
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __dirname = import.meta.dirname
 
 const app = express()
 // 中间件，处理接收到的body
@@ -35,12 +36,27 @@ app.get('/{*path}', (req, res) => {
   res.sendFile(join(__dirname, 'public', 'index.html'))
 })
 
-// 404
-app.use(handleNotFound)
 // 全局错误处理中间件, 不要每个路由都要try catch捕获错误
 app.use(handleAllError)
+// 404
+app.use(handleNotFound)
 
+async function main() {
+  await mongoose.connect(process.env.DB_URL)
+}
+main()
+  .then((res) => {
+    console.log('mongodb连接成功')
+  })
+  .catch((err) => {
+    console.log('mongodb连接失败:', err)
+  })
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Run http://localhost:${PORT}`)
+})
+// 优雅关闭
+process.on('SIGINT', async () => {
+  await mongoose.disconnect()
+  process.exit(0)
 })

@@ -46,7 +46,7 @@ export const loginValidator = [
     .bail()
     .custom(async (value) => {
       const exists = await User.findOne({ email: value })
-      if (!exists) return Promise.reject('邮箱不存在，请先注册')
+      if (!exists) return Promise.reject('邮箱或密码不正确')
       return true
     }),
   body('password').notEmpty().withMessage('密码不能为空'), // 这里不判断是否正确，因为加密了

@@ -17,5 +17,5 @@ const subscribeSchema = new mongoose.Schema(
     timestamps: true, // 自动加 createdAt 和 updatedAt
   },
 )
-
+subscribeSchema.index({ user: 1, channle: 1 }, { unique: true })
 export { subscribeSchema }

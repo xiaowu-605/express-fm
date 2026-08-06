@@ -14,25 +14,26 @@ import { PICK_FIELD, HOT_NUM } from '../utils/index.js'
 
 const __dirname = import.meta.dirname
 export const uploadVideo = async (req, res) => {
-  try {
-    const nameArr = req.file.originalname.split('.')
-    const fileType = nameArr[nameArr.length - 1]
-    let path = join(__dirname, '../uploads/videos')
-    await fs.rename(
-      `${path}\\${req.file.filename}`,
-      `${path}\\${req.file.filename}.${fileType}`,
-    )
-    const id = req.user?.userInfo?._id
-    if (!id) return res.fail('未获取到用户信息')
-    const image = `${req.file.filename}.${fileType}`
-    const relativePath = `/uploads/videos/${image}`
-    const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`
-    await User.findByIdAndUpdate(id, { cover: relativePath }, { new: true }) // new: true获取更新后的
-    res.success({ url: fullUrl }, '上传成功')
-  } catch (e) {
-    console.log('e---', e)
-    res.fail('上传失败', 500)
-  }
+  // 暂时不用这个，用的阿里云视频点播VoD
+  // try {
+  //   const nameArr = req.file.originalname.split('.')
+  //   const fileType = nameArr[nameArr.length - 1]
+  //   let path = join(__dirname, '../uploads/videos')
+  //   await fs.rename(
+  //     `${path}\\${req.file.filename}`,
+  //     `${path}\\${req.file.filename}.${fileType}`,
+  //   )
+  //   const id = req.user?.userInfo?._id
+  //   if (!id) return res.fail('未获取到用户信息')
+  //   const image = `${req.file.filename}.${fileType}`
+  //   const relativePath = `/uploads/videos/${image}`
+  //   const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`
+  //   await User.findByIdAndUpdate(id, { cover: relativePath }, { new: true }) // new: true获取更新后的
+  //   res.success({ url: fullUrl }, '上传成功')
+  // } catch (e) {
+  //   console.log('e---', e)
+  //   res.fail('上传失败', 500)
+  // }
 }
 
 export const createVideo = async (req, res) => {
@@ -55,7 +56,7 @@ export const videoList = async (req, res) => {
   const videolist = await Video.find()
     .skip((pageNum - 1) * pageSize)
     .limit(pageSize)
-    .sort({ creatAt: -1 })
+    .sort({ createdAt: -1 })
     .populate('user', PICK_FIELD.join(' ')) // 把关联的用户信息也查询出来
   const total = await Video.countDocuments() // 获取总条数
   res.success({ videolist, total })
@@ -64,7 +65,7 @@ export const videoList = async (req, res) => {
 // 获取视频详情
 export const videoDetail = async (req, res) => {
   let { videoId } = req.query
-  if (!videoId) res.fail('请传入视频id')
+  if (!videoId) return res.fail('请传入视频id')
   let videoInfo = await Video.findById(videoId).populate(
     'user',
     PICK_FIELD.join(' '), // 需要返回的数据
@@ -73,7 +74,7 @@ export const videoDetail = async (req, res) => {
   videoInfo.isLike = false
   videoInfo.isDisLike = false
   videoInfo.isSubscribe = false
-  const { userInfo } = req.user
+  const { userInfo } = req?.user
   if (userInfo) {
     // 已经登录
     const userId = userInfo._id
@@ -117,7 +118,7 @@ export const comment = async (req, res) => {
     video: videoId,
     user: id,
   }).save()
-  videoInfo.commentCount++
+  await Video.findByIdAndUpdate(videoId, { $inc: { commentCount: 1 } })
   await videoInfo.save()
   await hotInc(videoId, HOT_NUM.comment)
   res.success(dbBack, '评论成功')
@@ -130,7 +131,7 @@ export const commentList = async (req, res) => {
   let list = await VideoComment.find({ video: videoId })
     .skip((pageNum - 1) * pageSize)
     .limit(pageSize)
-    .sort({ creatAt: -1 })
+    .sort({ createdAt: -1 })
     .populate('user')
   list = list.map((item) => {
     item.user = pick(item.user, PICK_FIELD)

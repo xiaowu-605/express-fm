@@ -19,7 +19,15 @@ import { videoValidator } from '../middleware/validator/videoValidator.js'
 import { validator } from '../middleware/validator/errorBack.js'
 
 const router = Router()
-const upload = multer({ dest: 'uploads/videos' })
+const upload = multer({
+  storage: multer.diskStorage({ destination: 'uploads/videos/' }),
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['video/mp4', 'video/quicktime', 'video/x-msvideo']
+    if (allowed.includes(file.mimetype)) return cb(null, true)
+    cb(new Error('仅支持 mp4/mov/avi 格式'))
+  },
+})
 
 router
   .post('/upload', requireAuth(), upload.single('video'), uploadVideo)

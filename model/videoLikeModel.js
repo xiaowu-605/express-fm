@@ -21,5 +21,5 @@ const videoLikeSchema = new mongoose.Schema(
     timestamps: true, // 自动加 createdAt 和 updatedAt
   },
 )
-
+videoLikeSchema.index({ user: 1, video: 1 }, { unique: true })
 export { videoLikeSchema }

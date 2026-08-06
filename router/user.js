@@ -11,6 +11,7 @@ import {
   getUser,
   getSubscribe,
   getChannel,
+  changePassword,
 } from '../controllers/userController.js'
 import { validator } from '../middleware/validator/errorBack.js'
 import {
@@ -21,12 +22,25 @@ import {
 import { requireAuth } from '../utils/jwt.js'
 
 const router = Router()
-const upload = multer({ dest: 'uploads/images' }) // 文件存到uploads/images目录下
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: 'uploads/images',
+    limits: {
+      fileSize: 1024 * 1024 * 5, // 限制文件大小为5MB
+    },
+    fileFilter: (req, file, cb) => {
+      const allowed = ['image/jpeg', 'image/png', 'image/webp']
+      if (allowed.includes(file.mimetype)) return cb(null, true)
+      cb(new Error('仅支持 jpg/png/webp 格式'))
+    },
+  }),
+}) // 文件存到uploads/images目录下
 
 router
   .post('/register', validator(registerValidator), register)
   .post('/login', validator(loginValidator), login)
   .put('/update', requireAuth(), validator(updateValidator), update)
+  .put('/changePassword', requireAuth(), changePassword)
   .get('/list', requireAuth(), list)
   .post('/upload', requireAuth(), upload.single('avatar'), uploadAvatar) // avatar前端传的字段名
   .get('/subscribe', requireAuth(), subscribe) // 订阅 关注
