@@ -44,4 +44,7 @@ const videoSchema = new mongoose.Schema(
   },
 )
 
+videoSchema.index({ createdAt: -1 })
+videoSchema.index({ user: 1 })
+
 export { videoSchema }

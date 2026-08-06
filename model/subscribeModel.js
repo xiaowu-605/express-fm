@@ -18,4 +18,6 @@ const subscribeSchema = new mongoose.Schema(
   },
 )
 subscribeSchema.index({ user: 1, channle: 1 }, { unique: true })
+subscribeSchema.index({ channle: 1 })
+
 export { subscribeSchema }

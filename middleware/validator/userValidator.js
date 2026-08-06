@@ -40,44 +40,38 @@ export const loginValidator = [
   body('email')
     .notEmpty()
     .withMessage('邮箱不能为空')
-    .bail() // bail验证通过才验证后面的
-    .isEmail()
-    .withMessage('邮箱格式不正确')
     .bail()
-    .custom(async (value) => {
-      const exists = await User.findOne({ email: value })
-      if (!exists) return Promise.reject('邮箱或密码不正确')
-      return true
-    }),
-  body('password').notEmpty().withMessage('密码不能为空'), // 这里不判断是否正确，因为加密了
+    .isEmail()
+    .withMessage('邮箱格式不正确'),
+  body('password').notEmpty().withMessage('密码不能为空'),
 ]
 
 // 更新验证
 export const updateValidator = [
-  body('email').custom(async (value) => {
+  body('email').custom(async (value, { req }) => {
     if (!value) return true
     const exists = await User.findOne({
       email: value,
       _id: { $ne: req.user?.userInfo?._id },
-    }) // 排除自己
+    })
     if (exists) return Promise.reject('邮箱已被注册')
     return true
   }),
-  body('username').custom(async (value) => {
+  body('username').custom(async (value, { req }) => {
     if (!value) return true
     const exists = await User.findOne({
       username: value,
       _id: { $ne: req.user?.userInfo?._id },
-    }) // 排除自己
+    })
     if (exists) return Promise.reject('用户名已被注册')
     return true
   }),
-  body('phone').custom(async (value) => {
+  body('phone').custom(async (value, { req }) => {
     if (!value) return true
     const exists = await User.findOne({
       phone: value,
       _id: { $ne: req.user?.userInfo?._id },
-    }) // 排除自己
+    })
     if (exists) return Promise.reject('手机号已被注册')
     return true
   }),

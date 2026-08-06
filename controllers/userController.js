@@ -50,7 +50,9 @@ export const update = async (req, res) => {
 
 // 密码修改单独接口
 export const changePassword = async (req, res) => {
-  const user = await User.findById(req.user.userInfo._id).select('+password')
+  if (!req.body.newPassword) return res.fail('请输入新密码')
+  const user = await User.findById(req.user?.userInfo?._id).select('+password')
+  if (!user) return res.fail('未获取到用户信息')
   const isMatch = await bcrypt.compare(req.body.oldPassword, user.password)
   if (!isMatch) return res.fail('原密码不正确')
   user.password = req.body.newPassword
@@ -61,17 +63,16 @@ export const changePassword = async (req, res) => {
 // 上传头像
 export const uploadAvatar = async (req, res) => {
   try {
-    const nameArr = req.file.originalname.split('.')
-    const fileType = nameArr[nameArr.length - 1]
-    let path = join(__dirname, '../uploads/images') // C:\Users\87018\Desktop\wuxh\AICoding\express-fm\uploads
+    const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+    const ext = extMap[req.file.mimetype] || 'jpg'
+    let path = join(__dirname, '../uploads/images')
     await fs.rename(
-      `${path}\\${req.file.filename}`,
-      `${path}\\${req.file.filename}.${fileType}`,
+      join(path, req.file.filename),
+      join(path, `${req.file.filename}.${ext}`),
     )
     const id = req.user?.userInfo?._id
     if (!id) return res.fail('未获取到用户信息')
-    const image = `${req.file.filename}.${fileType}`
-    const relativePath = `/uploads/images/${image}`
+    const relativePath = `/uploads/images/${req.file.filename}.${ext}`
     const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`
     await User.findByIdAndUpdate(id, { image: relativePath }, { new: true }) // new: true获取更新后的
     res.success({ url: fullUrl }, '上传成功')
@@ -82,10 +83,10 @@ export const uploadAvatar = async (req, res) => {
 
 // 关注
 export const subscribe = async (req, res) => {
-  const channleId = req.query?.userId // 关注人的id
+  const channleId = req.body?.userId // 关注人的id
   const id = req.user?.userInfo?._id
   if (!channleId) return res.fail('请传入用户id')
-  if (channleId == id) return res.fail('不能关注自己', 422)
+  if (String(channleId) === String(id)) return res.fail('不能关注自己', 422)
   const userInfo = await User.findById(channleId)
   if (!userInfo) return res.fail('该用户不存在')
   const data = { user: id, channle: channleId }
@@ -95,16 +96,15 @@ export const subscribe = async (req, res) => {
   await new Subscribe(data).save()
   // 关注人的粉丝加1
   await User.findByIdAndUpdate(channleId, { $inc: { subscribeCount: 1 } })
-  const dbBack = await userInfo.save()
   res.success(null, '关注成功')
 }
 
 // 取消关注
 export const unsubscribe = async (req, res) => {
-  const channleId = req.query?.userId // 关注人的id
+  const channleId = req.body?.userId // 关注人的id
   const id = req.user?.userInfo?._id
   if (!channleId) return res.fail('请传入用户id')
-  if (channleId == id) return res.fail('不能取消关注自己', 422)
+  if (String(channleId) === String(id)) return res.fail('不能取消关注自己', 422)
   const userInfo = await User.findById(channleId)
   if (!userInfo) return res.fail('该用户不存在')
   const data = { user: id, channle: channleId }
@@ -112,8 +112,7 @@ export const unsubscribe = async (req, res) => {
   if (!record) return res.fail('还没有关注该用户')
   await record.deleteOne()
   // 关注人的粉丝减1
-  userInfo.subscribeCount--
-  await userInfo.save()
+  await User.findByIdAndUpdate(channleId, { $inc: { subscribeCount: -1 } })
   res.success(null, '取消成功')
 }
 

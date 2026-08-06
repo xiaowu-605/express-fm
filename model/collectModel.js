@@ -17,4 +17,6 @@ const collectSchema = new mongoose.Schema(
   },
 )
 
+collectSchema.index({ user: 1, video: 1 }, { unique: true })
+
 export { collectSchema }

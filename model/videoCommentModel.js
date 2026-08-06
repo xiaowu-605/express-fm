@@ -21,4 +21,6 @@ const videoCommentSchema = new mongoose.Schema(
   },
 )
 
+videoCommentSchema.index({ video: 1, createdAt: -1 })
+
 export { videoCommentSchema }

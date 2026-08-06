@@ -11,6 +11,10 @@ export const handleAllError = (err, req, res, next) => {
   console.log(err)
   // Multer 文件大小超限
   if (err.code === 'LIMIT_FILE_SIZE') return res.fail('文件大小超出限制', 413)
+  // Multer 其他错误（文件类型等）
+  if (err.name === 'MulterError') return res.fail(err.message, 400)
+  // Mongo 唯一索引冲突
+  if (err.code === 11000) return res.fail('数据已存在，请勿重复操作', 409)
   // Mongoose 校验错误
   if (err.name === 'ValidationError') {
     const msg = Object.values(err.errors)

@@ -40,19 +40,20 @@ export const createVideo = async (req, res) => {
   const id = req.user?.userInfo?._id
   if (!id) return res.fail('未获取到用户信息', 401)
   try {
-    const body = req.body
-    body.user = id
-    const videoModel = new Video(body)
+    const allowed = pick(req.body, 'title', 'description', 'vodvideoId', 'cover')
+    allowed.user = id
+    const videoModel = new Video(allowed)
     const dbBack = await videoModel.save()
     res.success(dbBack, '视频上传成功')
   } catch (e) {
-    res.fail(e, 500)
+    res.fail(e.message || '创建失败', 500)
   }
 }
 
 // 分页返回数据
 export const videoList = async (req, res) => {
-  const { pageNum = 1, pageSize = 10 } = req.query
+  let { pageNum = 1, pageSize = 10 } = req.query
+  pageSize = Math.min(pageSize, 50)
   const videolist = await Video.find()
     .skip((pageNum - 1) * pageSize)
     .limit(pageSize)
@@ -70,6 +71,7 @@ export const videoDetail = async (req, res) => {
     'user',
     PICK_FIELD.join(' '), // 需要返回的数据
   )
+  if (!videoInfo) return res.fail('视频不存在', 404)
   videoInfo = videoInfo.toObject()
   videoInfo.isLike = false
   videoInfo.isDisLike = false
@@ -110,6 +112,7 @@ export const videoDetail = async (req, res) => {
 export const comment = async (req, res) => {
   const id = req.user?.userInfo?._id
   const { videoId, content } = req.body
+  if (!videoId) return res.fail('请传入视频id')
   if (!content) return res.fail('请传入评论内容', 422)
   const videoInfo = await Video.findById(videoId)
   if (!videoInfo) return res.fail('视频不存在', 404)
@@ -119,7 +122,6 @@ export const comment = async (req, res) => {
     user: id,
   }).save()
   await Video.findByIdAndUpdate(videoId, { $inc: { commentCount: 1 } })
-  await videoInfo.save()
   await hotInc(videoId, HOT_NUM.comment)
   res.success(dbBack, '评论成功')
 }
@@ -128,6 +130,7 @@ export const comment = async (req, res) => {
 export const commentList = async (req, res) => {
   let { videoId, pageNum = 1, pageSize = 10 } = req.query
   if (!videoId) return res.fail('请传入视频id')
+  pageSize = Math.min(pageSize, 50)
   let list = await VideoComment.find({ video: videoId })
     .skip((pageNum - 1) * pageSize)
     .limit(pageSize)
@@ -143,23 +146,24 @@ export const commentList = async (req, res) => {
 
 // 删除评论
 export const delComment = async (req, res) => {
-  let { videoId, commentId } = req.query
+  let { videoId, commentId } = req.body
   const videoInfo = await Video.findById(videoId)
   if (!videoInfo) return res.fail('视频不存在', 404)
   const commentInfo = await VideoComment.findById(commentId)
   if (!commentInfo) return res.fail('评论不存在', 404)
   if (!commentInfo.user.equals(req.user.userInfo._id))
     return res.fail('评论不可删除', 403)
+  if (commentInfo.video.toString() !== videoId)
+    return res.fail('评论不属于该视频', 400)
   const dbBack = await commentInfo.deleteOne()
-  videoInfo.commentCount--
-  await videoInfo.save()
+  await Video.findByIdAndUpdate(videoId, { $inc: { commentCount: -1 } })
   res.success(dbBack, '删除成功')
 }
 
 // 喜欢视频
 export const likeVideo = async (req, res) => {
   const userId = req.user?.userInfo?._id
-  let { videoId } = req.query
+  let { videoId } = req.body
   const videoInfo = await Video.findById(videoId)
   if (!videoInfo) return res.fail('视频不存在', 404)
   const videolike = await VideoLike.findOne({
@@ -209,7 +213,7 @@ export const likeVideoList = async (req, res) => {
 // 收藏视频
 export const collect = async (req, res) => {
   const userId = req.user?.userInfo?._id
-  let { videoId } = req.query
+  let { videoId } = req.body
   const videoInfo = await Video.findById(videoId)
   if (!videoInfo) return res.fail('视频不存在', 404)
   const data = {

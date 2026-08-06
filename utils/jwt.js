@@ -9,20 +9,21 @@ export const getToken = (userInfo) => {
 }
 
 // 验证token中间件
-export const requireAuth = (require = true) => {
+export const requireAuth = (isRequired = true) => {
   return async (req, res, next) => {
-    const token = req.headers.authorization?.replace('Bearer ', '')
+    const token = req.headers.authorization?.replace(/^Bearer\s/i, '')
     if (!token) {
-      if (!require) return next()
+      if (!isRequired) return next()
       return res.fail('请先登录', 401)
     }
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
       const user = await User.findById(decoded._id)
       if (!user) return res.fail('用户不存在', 401)
-      req.user.userInfo = user
+      req.user = { userInfo: user }
       next()
     } catch (e) {
+      if (!isRequired) return next()
       res.fail('Token 无效或已过期', 401)
     }
   }

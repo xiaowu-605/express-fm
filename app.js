@@ -31,8 +31,9 @@ app.use(responseHelper) // 给返回结果res加success和fail
 // 路由
 app.use('/api/v1', router)
 
-// 通配符  http://localhost:3000/login等路径直接返回index.html
-app.get('/{*path}', (req, res) => {
+// SPA 通配符 — API 和静态文件不拦截
+app.get('/{*path}', (req, res, next) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return next()
   res.sendFile(join(__dirname, 'public', 'index.html'))
 })
 
