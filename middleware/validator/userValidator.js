@@ -55,17 +55,29 @@ export const loginValidator = [
 // 更新验证
 export const updateValidator = [
   body('email').custom(async (value) => {
-    const exists = await User.findOne({ email: value })
+    if (!value) return true
+    const exists = await User.findOne({
+      email: value,
+      _id: { $ne: req.user?.userInfo?._id },
+    }) // 排除自己
     if (exists) return Promise.reject('邮箱已被注册')
     return true
   }),
   body('username').custom(async (value) => {
-    const exists = await User.findOne({ username: value })
+    if (!value) return true
+    const exists = await User.findOne({
+      username: value,
+      _id: { $ne: req.user?.userInfo?._id },
+    }) // 排除自己
     if (exists) return Promise.reject('用户名已被注册')
     return true
   }),
   body('phone').custom(async (value) => {
-    const exists = await User.findOne({ phone: value })
+    if (!value) return true
+    const exists = await User.findOne({
+      phone: value,
+      _id: { $ne: req.user?.userInfo?._id },
+    }) // 排除自己
     if (exists) return Promise.reject('手机号已被注册')
     return true
   }),

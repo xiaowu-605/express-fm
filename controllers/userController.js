@@ -10,7 +10,8 @@ const __dirname = import.meta.dirname
 // 注册
 export const register = async (req, res) => {
   // await User.create(req.body) // 等于下面的两步
-  const userModel = new User(req.body)
+  const allowed = pick(req.body, 'username', 'email', 'password', 'phone') // 白名单过滤
+  const userModel = new User(allowed)
   const bdBack = await userModel.save()
   let userObj = bdBack.toObject()
   delete userObj.password
@@ -152,7 +153,7 @@ export const getSubscribe = async (req, res) => {
 
 // 获取我的粉丝列表
 export const getChannel = async (req, res) => {
-  const id = req.user?.userInfo?._id
+  const id = req.user?.userInfo?._id || null
   let channleUsers = await Subscribe.find({ channle: id }).populate('user')
   if (channleUsers) {
     channleUsers = channleUsers.map((item) => {

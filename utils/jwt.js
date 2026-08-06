@@ -20,7 +20,7 @@ export const requireAuth = (require = true) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
       const user = await User.findById(decoded._id)
       if (!user) return res.fail('用户不存在', 401)
-      req.user = user
+      req.user.userInfo = user
       next()
     } catch (e) {
       res.fail('Token 无效或已过期', 401)

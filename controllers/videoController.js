@@ -13,28 +13,28 @@ import { pick } from 'lodash-es'
 import { PICK_FIELD, HOT_NUM } from '../utils/index.js'
 
 const __dirname = import.meta.dirname
-export const uploadVideo = async (req, res) => {
-  // 暂时不用这个，用的阿里云视频点播VoD
-  // try {
-  //   const nameArr = req.file.originalname.split('.')
-  //   const fileType = nameArr[nameArr.length - 1]
-  //   let path = join(__dirname, '../uploads/videos')
-  //   await fs.rename(
-  //     `${path}\\${req.file.filename}`,
-  //     `${path}\\${req.file.filename}.${fileType}`,
-  //   )
-  //   const id = req.user?.userInfo?._id
-  //   if (!id) return res.fail('未获取到用户信息')
-  //   const image = `${req.file.filename}.${fileType}`
-  //   const relativePath = `/uploads/videos/${image}`
-  //   const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`
-  //   await User.findByIdAndUpdate(id, { cover: relativePath }, { new: true }) // new: true获取更新后的
-  //   res.success({ url: fullUrl }, '上传成功')
-  // } catch (e) {
-  //   console.log('e---', e)
-  //   res.fail('上传失败', 500)
-  // }
-}
+// export const uploadVideo = async (req, res) => {
+//   // 暂时不用这个，用的阿里云视频点播VoD
+//   // try {
+//   //   const nameArr = req.file.originalname.split('.')
+//   //   const fileType = nameArr[nameArr.length - 1]
+//   //   let path = join(__dirname, '../uploads/videos')
+//   //   await fs.rename(
+//   //     `${path}\\${req.file.filename}`,
+//   //     `${path}\\${req.file.filename}.${fileType}`,
+//   //   )
+//   //   const id = req.user?.userInfo?._id
+//   //   if (!id) return res.fail('未获取到用户信息')
+//   //   const image = `${req.file.filename}.${fileType}`
+//   //   const relativePath = `/uploads/videos/${image}`
+//   //   const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`
+//   //   await User.findByIdAndUpdate(id, { cover: relativePath }, { new: true }) // new: true获取更新后的
+//   //   res.success({ url: fullUrl }, '上传成功')
+//   // } catch (e) {
+//   //   console.log('e---', e)
+//   //   res.fail('上传失败', 500)
+//   // }
+// }
 
 export const createVideo = async (req, res) => {
   const id = req.user?.userInfo?._id
@@ -52,7 +52,7 @@ export const createVideo = async (req, res) => {
 
 // 分页返回数据
 export const videoList = async (req, res) => {
-  const { pageNum = 1, pageSize = 10 } = req.body
+  const { pageNum = 1, pageSize = 10 } = req.query
   const videolist = await Video.find()
     .skip((pageNum - 1) * pageSize)
     .limit(pageSize)
@@ -74,7 +74,7 @@ export const videoDetail = async (req, res) => {
   videoInfo.isLike = false
   videoInfo.isDisLike = false
   videoInfo.isSubscribe = false
-  const { userInfo } = req?.user
+  const userInfo = req?.user?.userInfo ?? null
   if (userInfo) {
     // 已经登录
     const userId = userInfo._id
@@ -127,7 +127,7 @@ export const comment = async (req, res) => {
 // 获取评论列表
 export const commentList = async (req, res) => {
   let { videoId, pageNum = 1, pageSize = 10 } = req.query
-  if (!videoId) res.fail('请传入视频id')
+  if (!videoId) return res.fail('请传入视频id')
   let list = await VideoComment.find({ video: videoId })
     .skip((pageNum - 1) * pageSize)
     .limit(pageSize)
@@ -173,7 +173,7 @@ export const likeVideo = async (req, res) => {
       video: videoId,
       like: 1,
     }).save()
-    await hotInc(videoId, HOT_NUM.collect)
+    await hotInc(videoId, HOT_NUM.like)
   } else {
     if (videolike.like === 1) {
       // 之前是点赞状态
