@@ -37,7 +37,7 @@ router
   .get('/videoDetail', requireAuth(false), videoDetail)
   .post('/comment', requireAuth(), comment) // 提交评论
   .get('/commentList', requireAuth(), commentList) // 获取评论列表
-  .delete('/delComment', requireAuth(), delComment) // 删除评论
+  .post('/delComment', requireAuth(), delComment) // 删除评论
   .post('/like', requireAuth(), likeVideo) // 喜欢视频
   .get('/likeVideoList', requireAuth(), likeVideoList) // 喜欢视频列表
   .post('/collect', requireAuth(), collect) // 收藏视频

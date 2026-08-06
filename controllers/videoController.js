@@ -40,7 +40,13 @@ export const createVideo = async (req, res) => {
   const id = req.user?.userInfo?._id
   if (!id) return res.fail('未获取到用户信息', 401)
   try {
-    const allowed = pick(req.body, 'title', 'description', 'vodvideoId', 'cover')
+    const allowed = pick(
+      req.body,
+      'title',
+      'description',
+      'vodvideoId',
+      'cover',
+    )
     allowed.user = id
     const videoModel = new Video(allowed)
     const dbBack = await videoModel.save()
@@ -98,7 +104,7 @@ export const videoDetail = async (req, res) => {
     }
     const subscribe = await Subscribe.findOne({
       user: userId,
-      channle: videoInfo.user._id,
+      channle: videoInfo.user?._id,
     })
     if (subscribe) {
       videoInfo.isSubscribe = true
@@ -171,33 +177,31 @@ export const likeVideo = async (req, res) => {
     video: videoId,
   })
   let isLike = true
+  let likeDelta = 0
   if (!videolike) {
     await new VideoLike({
       user: userId,
       video: videoId,
       like: 1,
     }).save()
+    likeDelta = 1
     await hotInc(videoId, HOT_NUM.like)
   } else {
     if (videolike.like === 1) {
-      // 之前是点赞状态
       await videolike.deleteOne()
       isLike = false
+      likeDelta = -1
+      await hotInc(videoId, -HOT_NUM.like)
     } else {
       videolike.like = 1
       await videolike.save()
+      likeDelta = 1
       await hotInc(videoId, HOT_NUM.like)
     }
   }
-  videoInfo.likeCount = await VideoLike.countDocuments({
-    video: videoId,
-    like: 1,
-  })
-  videoInfo.dislikeCount = await VideoLike.countDocuments({
-    video: videoId,
-    like: -1,
-  })
-  await videoInfo.save()
+  if (likeDelta !== 0) {
+    await Video.findByIdAndUpdate(videoId, { $inc: { likeCount: likeDelta } })
+  }
   res.success({ ...videoInfo.toObject(), isLike }, '操作成功')
 }
 

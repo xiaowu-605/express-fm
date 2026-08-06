@@ -19,7 +19,10 @@ export const requireAuth = (isRequired = true) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
       const user = await User.findById(decoded._id)
-      if (!user) return res.fail('用户不存在', 401)
+      if (!user) {
+        if (!isRequired) return next()
+        return res.fail('用户不存在', 401)
+      }
       req.user = { userInfo: user }
       next()
     } catch (e) {

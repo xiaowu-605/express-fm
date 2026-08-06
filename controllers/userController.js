@@ -50,6 +50,7 @@ export const update = async (req, res) => {
 
 // 密码修改单独接口
 export const changePassword = async (req, res) => {
+  if (!req.body.oldPassword) return res.fail('请输入原密码')
   if (!req.body.newPassword) return res.fail('请输入新密码')
   const user = await User.findById(req.user?.userInfo?._id).select('+password')
   if (!user) return res.fail('未获取到用户信息')
@@ -63,6 +64,7 @@ export const changePassword = async (req, res) => {
 // 上传头像
 export const uploadAvatar = async (req, res) => {
   try {
+    if (!req.file) return res.fail('请选择上传文件', 400)
     const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
     const ext = extMap[req.file.mimetype] || 'jpg'
     let path = join(__dirname, '../uploads/images')
@@ -112,7 +114,10 @@ export const unsubscribe = async (req, res) => {
   if (!record) return res.fail('还没有关注该用户')
   await record.deleteOne()
   // 关注人的粉丝减1
-  await User.findByIdAndUpdate(channleId, { $inc: { subscribeCount: -1 } })
+  await User.updateOne(
+    { _id: channleId, subscribeCount: { $gt: 0 } },
+    { $inc: { subscribeCount: -1 } },
+  )
   res.success(null, '取消成功')
 }
 

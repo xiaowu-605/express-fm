@@ -25,15 +25,15 @@ const router = Router()
 const upload = multer({
   storage: multer.diskStorage({
     destination: 'uploads/images',
-    limits: {
-      fileSize: 1024 * 1024 * 5, // 限制文件大小为5MB
-    },
-    fileFilter: (req, file, cb) => {
-      const allowed = ['image/jpeg', 'image/png', 'image/webp']
-      if (allowed.includes(file.mimetype)) return cb(null, true)
-      cb(new Error('仅支持 jpg/png/webp 格式'))
-    },
   }),
+  limits: {
+    fileSize: 1024 * 1024 * 5, // 限制文件大小为5MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp']
+    if (allowed.includes(file.mimetype)) return cb(null, true)
+    cb(new Error('仅支持 jpg/png/webp 格式'))
+  },
 }) // 文件存到uploads/images目录下
 
 router
@@ -47,6 +47,6 @@ router
   .post('/unsubscribe', requireAuth(), unsubscribe) // 取消订阅 关注
   .get('/getUser', requireAuth(false), getUser) // 获取频道
   .get('/getSubscribe', getSubscribe) // 获取关注列表，关注了哪些人,不登录也可以查看--某一个人的关注列表
-  .get('/getChannel', getChannel) // 获取粉丝
+  .get('/getChannel', requireAuth(), getChannel) // 获取粉丝
 
 export default router

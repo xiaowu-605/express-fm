@@ -5,7 +5,6 @@ export const PICK_FIELD = [
   'cover',
   'channeldes',
   'subscribeCount',
-  'isSubscribe',
 ]
 // 热度：观看+1----点赞+2----评论+2----收藏+3
 export const HOT_NUM = {
